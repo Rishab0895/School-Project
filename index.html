@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Management System</title>
+  
+  <!-- CSS Files -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" media="print" href="css/print.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="navbar-content">
+        <div class="navbar-brand">
+          <h1 id="schoolName">School Management System</h1>
+          <p id="schoolYear" class="academic-year"></p>
+        </div>
+
+        <ul class="nav-menu">
+          <li><a href="#" class="nav-link" onclick="navigateTo('dashboard')">📊 Dashboard</a></li>
+          <li><a href="#" class="nav-link" onclick="navigateTo('students')">👥 Students</a></li>
+          <li><a href="#" class="nav-link" onclick="navigateTo('staff')">👨‍💼 Staff</a></li>
+          <li><a href="#" class="nav-link" onclick="navigateTo('fees')">💰 Fees</a></li>
+          <li><a href="#" class="nav-link" onclick="navigateTo('salary')">💵 Salary</a></li>
+          <li><a href="#" class="nav-link" onclick="navigateTo('reports')">📈 Reports</a></li>
+          <li><a href="#" class="nav-link" onclick="navigateTo('settings')">⚙️ Settings</a></li>
+        </ul>
+
+        <div class="navbar-right">
+          <select id="academicYearSelect" onchange="changeAcademicYear(this.value)">
+            <option value="">Select Year...</option>
+          </select>
+          <span class="storage-info" id="storageInfo"></span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <div id="appContent"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2026 School Management System. All rights reserved.</p>
+      <p>Data stored locally on your browser using localStorage.</p>
+    </footer>
+  </div>
+
+  <!-- Error Modal -->
+  <div id="errorModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('errorModal')">&times;</span>
+      <h2>Error</h2>
+      <p id="errorMessage"></p>
+      <button onclick="closeModal('errorModal')" class="btn btn-primary">Close</button>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('successModal')">&times;</span>
+      <h2>Success</h2>
+      <p id="successMessage"></p>
+      <button onclick="closeModal('successModal')" class="btn btn-primary">Close</button>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('confirmModal')">&times;</span>
+      <h2>Confirm</h2>
+      <p id="confirmMessage"></p>
+      <div class="modal-buttons">
+        <button onclick="confirmYes()" class="btn btn-primary">Yes</button>
+        <button onclick="closeModal('confirmModal')" class="btn btn-secondary">No</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Files -->
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/models.js"></script>
+  <script src="js/validation.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/students.js"></script>
+  <script src="js/staff.js"></script>
+  <script src="js/fees.js"></script>
+  <script src="js/salary.js"></script>
+  <script src="js/documents.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
