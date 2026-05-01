@@ -33,7 +33,10 @@ function renderSalaryPage() {
     <div class="card">
       <div class="card-header flex-between">
         <h2>💵 Salary Management</h2>
-        <button class="btn btn-success" onclick="showAssignSalaryForm()">+ Assign Salary to Staff</button>
+        <div class="header-buttons">
+          <button class="btn btn-info" onclick="generateMonthlySalaries()" title="Auto-generate salaries for all active staff based on their profiles">🔄 Generate Monthly Salaries</button>
+          <button class="btn btn-success" onclick="showAssignSalaryForm()">+ Assign Salary Manually</button>
+        </div>
       </div>
     </div>
 
@@ -814,6 +817,113 @@ function closeSalaryPaymentForm() {
   document.getElementById('recordSalaryPaymentModal').classList.remove('show');
 }
 
+// ==================== AUTO-GENERATE MONTHLY SALARIES ====================
+function generateMonthlySalaries() {
+  const staff = Storage.getCollection('staff');
+  const salaries = Storage.getCollection('salaryPayments');
+  const activeStaff = staff.filter(s => s.status === 'active');
+
+  // Get current month and year
+  const today = new Date();
+  const currentMonth = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+  const currentYear = CONFIG.academicYear.current;
+
+  if (activeStaff.length === 0) {
+    showErrorModal('No active staff members found. Please add staff first.');
+    return;
+  }
+
+  // Check which staff members need salary generated this month
+  const staffNeedingSalary = [];
+  const staffAlreadyPaid = [];
+
+  activeStaff.forEach(staffMember => {
+    // Check if staff has salary configuration
+    if (!staffMember.basicSalary || staffMember.basicSalary === 0) {
+      return; // Skip if no salary configured
+    }
+
+    // Check if salary already exists for this month
+    const exists = salaries.some(s => 
+      s.staffId === staffMember.id && 
+      s.month === currentMonth && 
+      s.academicYear === currentYear
+    );
+
+    if (exists) {
+      staffAlreadyPaid.push(staffMember.name);
+    } else {
+      staffNeedingSalary.push(staffMember);
+    }
+  });
+
+  if (staffNeedingSalary.length === 0) {
+    let message = 'No staff members need salary generation for ' + currentMonth;
+    if (staffAlreadyPaid.length > 0) {
+      message += `\n\nAlready processed: ${staffAlreadyPaid.join(', ')}`;
+    }
+    showInfoModal(message);
+    return;
+  }
+
+  // Show confirmation dialog
+  let confirmMessage = `Auto-generate salary for ${staffNeedingSalary.length} staff member(s)?\n\nStaff members:\n`;
+  confirmMessage += staffNeedingSalary.map(s => `• ${s.name} - ${Utils.formatCurrency(s.basicSalary)}`).join('\n');
+  
+  if (staffAlreadyPaid.length > 0) {
+    confirmMessage += `\n\nAlready processed (${staffAlreadyPaid.length}): ${staffAlreadyPaid.join(', ')}`;
+  }
+
+  if (confirm(confirmMessage)) {
+    let successCount = 0;
+
+    // Create salary records for each staff member
+    staffNeedingSalary.forEach(staffMember => {
+      const basicSalary = parseFloat(staffMember.basicSalary || 0);
+      const allowances = parseFloat(staffMember.allowances || 0);
+      const deductions = parseFloat(staffMember.deductions || 0);
+      const netSalary = basicSalary + allowances - deductions;
+
+      const salary = new Salary(
+        staffMember.id,
+        currentMonth,
+        currentYear,
+        basicSalary,
+        allowances,
+        deductions,
+        netSalary,
+        'pending'
+      );
+
+      if (Storage.addItem('salaryPayments', salary.toJSON())) {
+        successCount++;
+      }
+    });
+
+    if (successCount > 0) {
+      showSuccessModal(`✅ Successfully generated salary for ${successCount} staff member(s) for ${currentMonth}!\n\nAll salaries set to "Pending" status. Record payments when ready.`);
+      renderSalaryPage(); // Refresh the page
+    } else {
+      showErrorModal('Failed to generate salaries. Please try again.');
+    }
+  }
+}
+
+// ==================== INFO MODAL (for non-error information) ====================
+function showInfoModal(message) {
+  const modal = document.getElementById('successModal');
+  if (modal) {
+    modal.querySelector('.modal-content p').textContent = message;
+    modal.classList.add('show');
+  } else {
+    alert(message);
+  }
+}
+
+function closeSalaryPaymentForm() {
+  document.getElementById('recordSalaryPaymentModal').classList.remove('show');
+}
+
 // ==================== SALARY MODEL CLASS ====================
 class Salary {
   constructor(staffId, month, academicYear, basicSalary, allowances, deductions, netSalary, status = 'pending') {
@@ -830,5 +940,23 @@ class Salary {
     this.paymentMethod = null;
     this.referenceNumber = null;
     this.notes = null;
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      staffId: this.staffId,
+      month: this.month,
+      academicYear: this.academicYear,
+      basicSalary: this.basicSalary,
+      allowances: this.allowances,
+      deductions: this.deductions,
+      netSalary: this.netSalary,
+      status: this.status,
+      paymentDate: this.paymentDate,
+      paymentMethod: this.paymentMethod,
+      referenceNumber: this.referenceNumber,
+      notes: this.notes
+    };
   }
 }

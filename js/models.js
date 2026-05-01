@@ -54,6 +54,9 @@ class Staff {
     this.bankName = data.bankName || '';
     this.ifscCode = data.ifscCode || '';
     this.accountHolderName = data.accountHolderName || '';
+    this.basicSalary = parseFloat(data.basicSalary || 0);
+    this.allowances = parseFloat(data.allowances || 0);
+    this.deductions = parseFloat(data.deductions || 0);
     this.status = data.status || 'active'; // active, inactive, on_leave, retired
     this.remarks = data.remarks || '';
   }

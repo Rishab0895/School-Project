@@ -148,6 +148,36 @@ function renderStaffPage() {
             </div>
           </div>
 
+          <div style="background-color: #f0f8ff; padding: 15px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid #3498db;">
+            <h4 style="margin-top: 0; margin-bottom: 15px;">💰 Monthly Salary Structure (Auto-generated each month)</h4>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Basic Salary *</label>
+                <input type="number" id="staffBasicSalary" min="0" step="0.01" placeholder="Monthly basic salary" required>
+              </div>
+              <div class="form-group">
+                <label>Allowances</label>
+                <input type="number" id="staffAllowances" min="0" step="0.01" placeholder="Monthly allowances" value="0">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Deductions</label>
+                <input type="number" id="staffDeductions" min="0" step="0.01" placeholder="Monthly deductions" value="0">
+              </div>
+              <div class="form-group">
+                <label>Expected Net Salary</label>
+                <input type="text" id="staffNetSalaryPreview" disabled style="background-color: #f9f9f9;" value="0">
+              </div>
+            </div>
+
+            <div style="background-color: white; padding: 10px; border-radius: 3px; font-size: 12px; color: #666;">
+              <strong>ℹ️ Note:</strong> These salary components will be automatically generated each month. You won't need to enter them manually.
+            </div>
+          </div>
+
           <div class="form-group">
             <label>Remarks</label>
             <textarea id="staffRemarks" placeholder="Any additional notes..."></textarea>
@@ -180,6 +210,17 @@ function renderStaffPage() {
     if (gradeSelect) {
       gradeSelect.value = Object.keys(CONFIG.staff.grades)[0];
     }
+
+    // Add event listeners for salary calculation
+    const basicInput = document.getElementById('staffBasicSalary');
+    const allowancesInput = document.getElementById('staffAllowances');
+    const deductionsInput = document.getElementById('staffDeductions');
+    
+    [basicInput, allowancesInput, deductionsInput].forEach(input => {
+      if (input) {
+        input.addEventListener('input', updateSalaryPreview);
+      }
+    });
   }, 0);
 }
 
@@ -317,11 +358,27 @@ function editStaff(staffId) {
   document.getElementById('staffBankName').value = member.bankName || '';
   document.getElementById('staffIFSCCode').value = member.ifscCode || '';
   document.getElementById('staffAccountHolderName').value = member.accountHolderName || '';
+  document.getElementById('staffBasicSalary').value = member.basicSalary || '';
+  document.getElementById('staffAllowances').value = member.allowances || 0;
+  document.getElementById('staffDeductions').value = member.deductions || 0;
   document.getElementById('staffRemarks').value = member.remarks || '';
   document.getElementById('staffFormTitle').textContent = 'Edit Staff Member';
   document.getElementById('staffFormErrors').style.display = 'none';
 
+  // Calculate net salary preview
+  updateSalaryPreview();
+
   document.getElementById('staffFormModal').classList.add('show');
+}
+
+// ==================== UPDATE SALARY PREVIEW ====================
+function updateSalaryPreview() {
+  const basic = parseFloat(document.getElementById('staffBasicSalary')?.value || 0);
+  const allowances = parseFloat(document.getElementById('staffAllowances')?.value || 0);
+  const deductions = parseFloat(document.getElementById('staffDeductions')?.value || 0);
+  const netSalary = basic + allowances - deductions;
+
+  document.getElementById('staffNetSalaryPreview').value = Utils.formatCurrency(netSalary);
 }
 
 // ==================== SAVE STAFF ====================
@@ -346,6 +403,9 @@ function saveStaff(event) {
     bankName: document.getElementById('staffBankName').value,
     ifscCode: document.getElementById('staffIFSCCode').value,
     accountHolderName: document.getElementById('staffAccountHolderName').value,
+    basicSalary: parseFloat(document.getElementById('staffBasicSalary').value || 0),
+    allowances: parseFloat(document.getElementById('staffAllowances').value || 0),
+    deductions: parseFloat(document.getElementById('staffDeductions').value || 0),
     remarks: document.getElementById('staffRemarks').value
   };
 
